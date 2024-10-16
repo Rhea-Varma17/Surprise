@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jim and Pam's Maze Escape</title>
+    <style>
+        body {
+            background-color: black;
+            color: #fff;
+            font-family: 'American Typewriter', serif;
+            text-align: center;
+        }
+        #gameContainer {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: auto;
+            border: 2px solid white;
+            background-color: white;
+            overflow: hidden;
+        }
+        .character {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-size: cover;
+        }
+        #jim {
+            background-image: url('https://i.pinimg.com/736x/f2/93/7e/f2937e6754a5f4834695c50dffca65c3.jpg'); 
+        }
+        #pam {
+            background-image: url('https://i.pinimg.com/564x/03/ad/ed/03aded1b6f888dd88040abf4766db22f.jpg'); 
+        }
+        .wall {
+            position: absolute;
+            background-color: #333;
+            /* Thinner walls */
+            width: 5px; /* Set wall width to 5px */
+        }
+        #winMessage {
+            display: none;
+            font-size: 2em;
+            color: yellow;
+        }
+        #restartButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            display: inline-block;
+        }
+        #instructions {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Jim and Pam's Maze Escape</h1>
+    <h2>Instructions</h2>
+    <div id="instructions">
+        <ul>
+            <li>Help Jim Reach Pam by navigating the maze using your arrow keys. P.S There might be invisible walls too!</li>
+        </ul>
+    </div>
+    <div id="gameContainer">
+        <div id="jim" class="character" style="top: 0; left: 0;"></div>
+        <div id="pam" class="character" style="top: 360px; left: 360px;"></div>
+        <!-- Maze Walls -->
+        <div class="wall" style="top: 0px; left: 395px; height: 300px;"></div>
+        <div class="wall" style="top: 40px; left: 40px; height: 200px;"></div>
+        <div class="wall" style="top: 40px; left: 200px; height: 200px;"></div>
+        <div class="wall" style="top: 100px; left: 40px; width: 150px;"></div>
+        <div class="wall" style="top: 250px; left: 40px; width: 150px;"></div>
+        <div class="wall" style="top: 100px; left: 150px; height: 100px;"></div>
+        <div class="wall" style="top: 200px; left: 200px; height: 100px;"></div>
+        <div class="wall" style="top: 100px; left: 350px; height: 100px;"></div>
+        <div class="wall" style="top: 250px; left: 300px; height: 10px;"></div>
+        <div class="wall" style="top: 150px; left: 250px; height: 10px;"></div>
+        <div class="wall" style="top: 200px; left: 100px; width: 100px;"></div>
+        <div class="wall" style="top: 350px; left: 100px; width: 200px;"></div>
+        <div class="wall" style="top: 300px; left: 150px; width: 10px; height: 60px;"></div>
+        <div class="wall" style="top: 80px; left: 80px; width: 10px; height: 150px;"></div>
+    </div>
+    <div id="winMessage">YOU WON!</div>
+    <button id="restartButton">Restart Game</button>
+    <script>
+        const jim = document.getElementById('jim');
+        const pam = document.getElementById('pam');
+        const winMessage = document.getElementById('winMessage');
+        const restartButton = document.getElementById('restartButton');
+        const gameContainer = document.getElementById('gameContainer');
+
+        let startPosition = { top: 0, left: 0 };
+
+        function resetGame() {
+            jim.style.top = startPosition.top + 'px';
+            jim.style.left = startPosition.left + 'px';
+            winMessage.style.display = 'none';
+            restartButton.style.display = 'block';
+            clearConfetti();
+        }
+
+        function moveJim(direction) {
+            const jimRect = jim.getBoundingClientRect();
+            const newPosition = { top: parseInt(jim.style.top), left: parseInt(jim.style.left) };
+
+            switch (direction) {
+                case 'ArrowUp':
+                    newPosition.top = Math.max(0, newPosition.top - 40);
+                    break;
+                case 'ArrowDown':
+                    newPosition.top = Math.min(gameContainer.clientHeight - jimRect.height, newPosition.top + 40);
+                    break;
+                case 'ArrowLeft':
+                    newPosition.left = Math.max(0, newPosition.left - 40);
+                    break;
+                case 'ArrowRight':
+                    newPosition.left = Math.min(gameContainer.clientWidth - jimRect.width, newPosition.left + 40);
+                    break;
+            }
+
+            if (!checkWallCollision(newPosition.top, newPosition.left, jimRect.width, jimRect.height)) {
+                jim.style.top = newPosition.top + 'px';
+                jim.style.left = newPosition.left + 'px';
+            }
+            
+            checkWin();
+        }
+
+        function checkWin() {
+            const jimRect = jim.getBoundingClientRect();
+            const pamRect = pam.getBoundingClientRect();
+
+            if (
+                jimRect.x < pamRect.x + pamRect.width &&
+                jimRect.x + jimRect.width > pamRect.x &&
+                jimRect.y < pamRect.y + pamRect.height &&
+                jimRect.y + jimRect.height > pamRect.y
+            ) {
+                winMessage.textContent = "You WON!";
+                winMessage.style.display = 'block';
+                restartButton.style.display = 'block';
+                throwConfetti();
+            }
+        }
+
+        function checkWallCollision(newTop, newLeft, jimWidth, jimHeight) {
+            const walls = document.querySelectorAll('.wall');
+
+            const jimRect = {
+                top: newTop,
+                left: newLeft,
+                right: newLeft + jimWidth,
+                bottom: newTop + jimHeight
+            };
+
+            for (const wall of walls) {
+                const wallRect = wall.getBoundingClientRect();
+                const wallPos = {
+                    top: wallRect.top - gameContainer.getBoundingClientRect().top,
+                    left: wallRect.left - gameContainer.getBoundingClientRect().left,
+                    right: wallRect.right - gameContainer.getBoundingClientRect().left,
+                    bottom: wallRect.bottom - gameContainer.getBoundingClientRect().top
+                };
+
+                if (
+                    jimRect.left < wallPos.right &&
+                    jimRect.right > wallPos.left &&
+                    jimRect.top < wallPos.bottom &&
+                    jimRect.bottom > wallPos.top
+                ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function throwConfetti() {
+            for (let i = 0; i < 100; i++) {
+                createConfetti();
+            }
+        }
+
+        function createConfetti() {
+            const confetti = document.createElement('div');
+            confetti.classList.add('confetti');
+
+            confetti.style.left = Math.random() * gameContainer.clientWidth + 'px';
+            confetti.style.top = Math.random() * gameContainer.clientHeight + 'px';
+            confetti.style.backgroundColor = getRandomColor();
+
+            gameContainer.appendChild(confetti);
+            animateConfetti(confetti);
+        }
+
+        function animateConfetti(confetti) {
+            const fallDuration = Math.random() * 2 + 3;
+            const fallDistance = Math.random() * 200 + 100;
+            const rotate = Math.random() * 360;
+
+            confetti.animate([
+                { transform: `translateY(0) rotate(0deg)` },
+                { transform: `translateY(${fallDistance}px) rotate(${rotate}deg)` }
+            ], {
+                duration: fallDuration * 1000,
+                easing: 'ease-in-out',
+                fill: 'forwards'
+            });
+
+            setTimeout(() => {
+                confetti.remove();
+            }, fallDuration * 1000);
+        }
+
+        function clearConfetti() {
+            const confettiPieces = document.querySelectorAll('.confetti');
+            confettiPieces.forEach(piece => piece.remove());
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        document.addEventListener('keydown', (event) => {
+            moveJim(event.key);
+        });
+
+        restartButton.addEventListener('click', resetGame);
+    </script>
+</body>
+</html>

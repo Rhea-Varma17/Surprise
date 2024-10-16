@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suit Up Challenge</title>
+    <style>
+        body {
+            background-image: url('https://img.goodfon.com/wallpaper/big/0/91/how-i-met-your-mother-kak-ya.webp'); /* Replace with a real background URL */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            color:white;
+            padding: 20px;
+        }
+
+        h1 {
+            color: black;
+        }
+
+        #instructions {
+            font-size: 18px; /* Adjust font size for visibility */
+            margin: 10px 0; /* Margin above and below */
+        }
+
+        #gameCanvas {
+            border: 2px solid #fff;
+            background: rgba(0, 0, 0, 0.6);
+            display: block;
+            margin: 20px auto; /* Add margin for spacing */
+            border-radius: 10px;
+        }
+
+        #message {
+            font-size: 24px; /* Increased font size for better visibility */
+            margin-top: 10px;
+            color: yellow; /* Changed color for better contrast */
+            background-color: rgba(0, 0, 0, 0.7); /* Added background for contrast */
+            padding: 10px; /* Added padding */
+            border-radius: 5px; /* Rounded corners */
+            display: inline-block; /* Inline block for better spacing */
+        }
+
+        #restartButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none; /* Initially hidden */
+        }
+    </style>
+</head>
+<body>
+    <h1>Suit Up Challenge</h1>
+    <div id="instructions">Help Barney collect 5 suits and avoid casual clothes! Use arrow keys to move.</div> <!-- Instructions directly below heading -->
+    <canvas id="gameCanvas" width="500" height="500"></canvas> <!-- Reduced size here -->
+    <div id="message">Use arrow keys to help Barney collect 5 suits and avoid casual clothes!</div>
+    <button id="restartButton">Restart Game</button>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const playerImg = new Image();
+        playerImg.src = 'https://i.pinimg.com/474x/2a/5c/b7/2a5cb7e86206499abe6e49957f80406e.jpg'; // Replace with Barney's image URL
+        const suitImg = new Image();
+        suitImg.src = 'https://i.pinimg.com/control/564x/00/a1/09/00a1096c743c29a922ec1c66c40aa4b3.jpg'; // Replace with suit image URL
+        const clothesImg = new Image();
+        clothesImg.src = 'https://i.pinimg.com/236x/d2/de/26/d2de263b40641384cf5863a3fd6f3f8d.jpg'; // Replace with casual clothes image URL
+
+        const player = { x: 50, y: 50, size: 50 }; // Increased player size
+        const suits = [];
+        const clothes = [];
+        let score = 0;
+        let gameOver = false;
+
+        function createItems(typeArray, itemCount, imgSize) {
+            for (let i = 0; i < itemCount; i++) {
+                typeArray.push({
+                    x: Math.random() * (canvas.width - imgSize),
+                    y: Math.random() * (canvas.height - imgSize),
+                    size: imgSize
+                });
+            }
+        }
+
+        function drawPlayer() {
+            ctx.drawImage(playerImg, player.x, player.y, player.size, player.size);
+        }
+
+        function drawItems(items, img) {
+            items.forEach(item => {
+                ctx.drawImage(img, item.x, item.y, item.size, item.size);
+            });
+        }
+
+        function movePlayer(e) {
+            if (gameOver) return;
+            switch (e.key) {
+                case 'ArrowUp':
+                    player.y = Math.max(0, player.y - 5);
+                    break;
+                case 'ArrowDown':
+                    player.y = Math.min(canvas.height - player.size, player.y + 5);
+                    break;
+                case 'ArrowLeft':
+                    player.x = Math.max(0, player.x - 5);
+                    break;
+                case 'ArrowRight':
+                    player.x = Math.min(canvas.width - player.size, player.x + 5);
+                    break;
+            }
+            checkCollisions();
+        }
+
+        function checkCollisions() {
+            suits.forEach((suit, index) => {
+                if (isColliding(player, suit)) {
+                    suits.splice(index, 1);
+                    score++;
+                    if (score === 5) {
+                        endGame(true);
+                    }
+                }
+            });
+
+            clothes.forEach(cloth => {
+                if (isColliding(player, cloth)) {
+                    endGame(false);
+                }
+            });
+        }
+
+        function isColliding(a, b) {
+            return (
+                a.x < b.x + b.size &&
+                a.x + a.size > b.x &&
+                a.y < b.y + b.size &&
+                a.y + a.size > b.y
+            );
+        }
+
+        function endGame(won) {
+            gameOver = true;
+            document.getElementById('message').textContent = won ? 
+                "Legendary! You collected 5 suits!" : 
+                "You lose! You touched casual clothes! Try again.";
+            document.getElementById('restartButton').style.display = 'block'; // Show restart button
+        }
+
+        function restartGame() {
+            player.x = 50;
+            player.y = 50;
+            score = 0;
+            gameOver = false;
+            suits.length = 0; // Clear existing suits
+            clothes.length = 0; // Clear existing clothes
+            createItems(suits, 5, 50); // Increased size for suits
+            createItems(clothes, 3, 50); // Increased size for clothes
+            document.getElementById('message').textContent = "Use arrow keys to help Barney collect 5 suits and avoid casual clothes!";
+            document.getElementById('restartButton').style.display = 'none'; // Hide restart button
+            gameLoop();
+        }
+
+        function gameLoop() {
+            if (gameOver) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPlayer();
+            drawItems(suits, suitImg); // Draw suits
+            drawItems(clothes, clothesImg); // Draw casual clothes
+            requestAnimationFrame(gameLoop);
+        }
+
+        document.addEventListener('keydown', movePlayer);
+        document.getElementById('restartButton').addEventListener('click', restartGame);
+
+        // Initial item creation and game loop start
+        createItems(suits, 5, 50); // Increased size for suits
+        createItems(clothes, 3, 50); // Increased size for clothes
+        gameLoop();
+    </script>
+</body>
+</html>

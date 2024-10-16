@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TV Show Buttons</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .button {
+            background-color: #222;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 180px;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .button:hover {
+            transform: scale(1.05);
+        }
+
+        .button img {
+            width: 100%;
+            height: 270px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .button-title {
+            background-color: #333;
+            padding: 10px;
+            color: white;
+            text-align: center;
+            border-radius: 0 0 8px 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="font-size: 3em; color: red;">HI BAYMAX</h1>
+    <div class="container">
+        <div class="button" onclick="window.location.href='the_office.html'">
+            <img src="https://i.pinimg.com/564x/85/3e/f1/853ef165a539dcbb4eaa217cbb61a2d3.jpg" alt="The Office">
+            <div class="button-title">The Office</div>
+        </div>
+        <div class="button" onclick="window.location.href='friends.html'">
+            <img src="https://i.pinimg.com/564x/38/08/4c/38084cd8dadf9d00224fa88cf4b5e377.jpg" alt="Friends">
+            <div class="button-title">Friends</div>
+        </div>
+        <div class="button" onclick="window.location.href='big_bang_theory.html'">
+            <img src="https://i.pinimg.com/564x/de/db/94/dedb94e07b073206ba135ab846f72de6.jpg" alt="Big Bang Theory">
+            <div class="button-title">Big Bang Theory</div>
+        </div>
+        <div class="button" onclick="window.location.href='himym.html'">
+            <img src="https://i.pinimg.com/564x/8c/82/ab/8c82ab2f430b82e1eb77484c57eed69c.jpg" alt="How I Met Your Mother">
+            <div class="button-title">How I Met Your Mother</div>
+        </div>
+    </div>
+</body>
+</html>

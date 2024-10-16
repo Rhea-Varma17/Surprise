@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends Memory Match Game</title>
+    <style>
+        body {
+    background-image: url('https://i.pinimg.com/control/236x/19/47/df/1947df55c67aab26ddbe6ad77460b2d6.jpg'); /* Replace with your image URL */
+    background-size: cover; /* Makes the background image cover the entire area */
+    background-position: center; /* Centers the background image */
+    background-repeat: no-repeat; /* Prevents the background from repeating */
+    color: #333;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh; /* Full viewport height */
+    margin: 0; /* Remove default margin */
+}
+
+        #gameContainer {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            gap: 10px;
+            margin: auto;
+            padding: 20px;
+        }
+        .card {
+            width: 100px;
+            height: 100px;
+            background-color: #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            border-radius: 5px;
+            position: relative;
+            perspective: 1000px;
+        }
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 5px;
+        }
+        .card-front {
+            background-color: #f8f8f8;
+        }
+        .card-back {
+            background-size: cover;
+            transform: rotateY(180deg);
+        }
+        #winMessage {
+            display: none;
+            font-size: 2em;
+            color: green;
+            margin-top: 20px; /* Add some space above */
+        }
+        #restartButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Friends Memory Match Game</h1>
+    <div id="gameContainer"></div>
+    <div id="winMessage">You found all the matches!</div>
+    <button id="restartButton" style="display: none;">Restart Game</button>
+
+    <script>
+        const characters = [
+            { name: 'Ross', image: 'https://i.pinimg.com/control/236x/27/4c/e1/274ce14b40fb95c6daf81ed74559bc04.jpg' },
+            { name: 'Ross', image: 'https://i.pinimg.com/control/236x/27/4c/e1/274ce14b40fb95c6daf81ed74559bc04.jpg' },
+            { name: 'Rachel', image: 'https://i.pinimg.com/236x/48/a2/30/48a2306d1ba8f8ae0674cb5b8769fedd.jpg' },
+            { name: 'Rachel', image: 'https://i.pinimg.com/564x/48/a2/30/48a2306d1ba8f8ae0674cb5b8769fedd.jpg' },
+            { name: 'Monica', image: 'https://i.pinimg.com/control/236x/53/1d/9f/531d9f6f705df2998e3b91707c18192d.jpg' },
+            { name: 'Monica', image: 'https://i.pinimg.com/control/236x/53/1d/9f/531d9f6f705df2998e3b91707c18192d.jpg' },
+            { name: 'Chandler', image: 'https://i.pinimg.com/control/236x/42/a8/3d/42a83d030c443f5675d988289846eca0.jpg' },
+            { name: 'Chandler', image: 'https://i.pinimg.com/control/236x/42/a8/3d/42a83d030c443f5675d988289846eca0.jpg' },
+            { name: 'Joey', image: 'https://i.pinimg.com/564x/e4/a7/10/e4a71099bcd1969c69b4a0b24a8e4b95.jpg' },
+            { name: 'Joey', image: 'https://i.pinimg.com/564x/e4/a7/10/e4a71099bcd1969c69b4a0b24a8e4b95.jpg' },
+            { name: 'Phoebe', image: 'https://i.pinimg.com/control/236x/d6/a0/11/d6a01165e44fe1de5106478e3e7e8120.jpg' },
+            { name: 'Phoebe', image: 'https://i.pinimg.com/control/236x/d6/a0/11/d6a01165e44fe1de5106478e3e7e8120.jpg' },
+        ];
+
+        let firstCard, secondCard;
+        let hasFlippedCard = false;
+        let lockBoard = false;
+        let matchesFound = 0;
+
+        const gameContainer = document.getElementById('gameContainer');
+        const winMessage = document.getElementById('winMessage');
+        const restartButton = document.getElementById('restartButton');
+
+        // Shuffle the characters array
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Create the game cards
+        function createCard(character) {
+            const card = document.createElement('div');
+            card.classList.add('card');
+            card.setAttribute('data-character', character.name);
+
+            const cardInner = document.createElement('div');
+            cardInner.classList.add('card-inner');
+
+            const cardFront = document.createElement('div');
+            cardFront.classList.add('card-front');
+            cardFront.textContent = '?';
+
+            const cardBack = document.createElement('div');
+            cardBack.classList.add('card-back');
+            cardBack.style.backgroundImage = `url('${character.image}')`;
+
+            cardInner.appendChild(cardFront);
+            cardInner.appendChild(cardBack);
+            card.appendChild(cardInner);
+
+            card.addEventListener('click', flipCard);
+            return card;
+        }
+
+        // Flip the card
+        function flipCard() {
+            if (lockBoard) return;
+            if (this === firstCard) return;
+
+            this.classList.add('flipped');
+            const cardInner = this.querySelector('.card-inner');
+            cardInner.style.transform = 'rotateY(180deg)';
+
+            if (!hasFlippedCard) {
+                hasFlippedCard = true;
+                firstCard = this;
+            } else {
+                hasFlippedCard = false;
+                secondCard = this;
+
+                checkForMatch();
+            }
+        }
+
+        // Check for a match
+        function checkForMatch() {
+            const firstCharacter = firstCard.dataset.character;
+            const secondCharacter = secondCard.dataset.character;
+
+            if (firstCharacter === secondCharacter) {
+                disableCards();
+                matchesFound++;
+
+                if (matchesFound === characters.length / 2) {
+                    winMessage.style.display = 'block';
+                    restartButton.style.display = 'block';
+                }
+            } else {
+                unflipCards();
+            }
+        }
+
+        function disableCards() {
+            firstCard.removeEventListener('click', flipCard);
+            secondCard.removeEventListener('click', flipCard);
+            resetBoard();
+        }
+
+        function unflipCards() {
+            lockBoard = true;
+
+            setTimeout(() => {
+                const firstInner = firstCard.querySelector('.card-inner');
+                const secondInner = secondCard.querySelector('.card-inner');
+                firstInner.style.transform = 'rotateY(0deg)';
+                secondInner.style.transform = 'rotateY(0deg)';
+                resetBoard();
+            }, 1500);
+        }
+
+        function resetBoard() {
+            [hasFlippedCard, lockBoard] = [false, false];
+            [firstCard, secondCard] = [null, null];
+        }
+
+        // Initialize the game
+        function initGame() {
+            matchesFound = 0;
+            winMessage.style.display = 'none';
+            restartButton.style.display = 'none';
+            gameContainer.innerHTML = '';
+
+            const shuffledCharacters = shuffle(characters);
+
+            shuffledCharacters.forEach(character => {
+                const card = createCard(character);
+                gameContainer.appendChild(card);
+            });
+        }
+
+        // Restart button functionality
+        restartButton.addEventListener('click', initGame);
+
+        // Start the game
+        initGame();
+    </script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Big Bang Theory Quiz</title>
+    <style>
+        body {
+            background-image: url('https://c4.wallpaperflare.com/wallpaper/344/442/447/the-big-bang-theory-wallpaper-preview.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            color: #333;
+            padding: 20px;
+        }
+        h1 {
+            color: white;
+        }
+        .question-container {
+            background-color: rgba(255, 255, 255, 0.8); /* White background with 80% opacity */
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 30px; /* Moderate space between questions */
+            border-radius: 5px;
+            text-align: left;
+            max-width: 600px;
+            margin: auto;
+        }
+        .question {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .options {
+            list-style: none;
+            padding: 0;
+        }
+        .options li {
+            margin-bottom: 8px;
+        }
+        #submitButton, #restartButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #restartButton {
+            display: none;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 20px;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>The Big Bang Theory Quiz</h1>
+    <div id="quizContainer"></div>
+    <button id="submitButton">Submit Quiz</button>
+    <div id="result"></div>
+    <button id="restartButton">Restart Quiz</button>
+
+    <script>
+        const quizData = [
+            {
+                question: "What is Sheldon's last name?",
+                options: ["Cooper", "Wolowitz", "Hofstadter", "Koothrappali"],
+                correct: "Cooper"
+            },
+            {
+                question: "Which character is an astrophysicist?",
+                options: ["Leonard", "Raj", "Sheldon", "Howard"],
+                correct: "Raj"
+            },
+            {
+                question: "What is the name of Sheldon's girlfriend?",
+                options: ["Penny", "Bernadette", "Amy", "Emily"],
+                correct: "Amy"
+            },
+            {
+                question: "What instrument does Leonard play?",
+                options: ["Guitar", "Violin", "Cello", "Drums"],
+                correct: "Cello"
+            },
+            {
+                question: "Which character never had a PhD?",
+                options: ["Howard", "Raj", "Sheldon", "Leonard"],
+                correct: "Howard"
+            },
+            {
+                question: "Where is Sheldon originally from?",
+                options: ["New York", "Texas", "California", "Florida"],
+                correct: "Texas"
+            },
+            {
+                question: "What is Raj's dog's name?",
+                options: ["Cinnamon", "Butter", "Sugar", "Coco"],
+                correct: "Cinnamon"
+            },
+            {
+                question: "Who does Howard marry?",
+                options: ["Penny", "Amy", "Emily", "Bernadette"],
+                correct: "Bernadette"
+            },
+            {
+                question: "What comic book store does the group visit?",
+                options: ["Comics and Games", "Stuart's Comics", "Comic Book Corner", "The Comic Center"],
+                correct: "Stuart's Comics"
+            },
+            {
+                question: "What is the name of Sheldon's twin sister?",
+                options: ["Missy", "Mandy", "Michelle", "Mary"],
+                correct: "Missy"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quizContainer');
+        const submitButton = document.getElementById('submitButton');
+        const restartButton = document.getElementById('restartButton');
+        const result = document.getElementById('result');
+
+        function loadQuiz() {
+            quizContainer.innerHTML = '';
+            quizData.forEach((quizItem, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.classList.add('question-container');
+
+                const question = document.createElement('div');
+                question.classList.add('question');
+                question.textContent = `${index + 1}. ${quizItem.question}`;
+                questionDiv.appendChild(question);
+
+                const optionsList = document.createElement('ul');
+                optionsList.classList.add('options');
+
+                quizItem.options.forEach(option => {
+                    const optionItem = document.createElement('li');
+                    const label = document.createElement('label');
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = `question${index}`;
+                    input.value = option;
+                    label.appendChild(input);
+                    label.append(option);
+                    optionItem.appendChild(label);
+                    optionsList.appendChild(optionItem);
+                });
+
+                questionDiv.appendChild(optionsList);
+                quizContainer.appendChild(questionDiv);
+            });
+        }
+
+        function calculateScore() {
+            let score = 0;
+            quizData.forEach((quizItem, index) => {
+                const selectedOption = document.querySelector(`input[name="question${index}"]:checked`);
+                if (selectedOption && selectedOption.value === quizItem.correct) {
+                    score++;
+                }
+            });
+            result.textContent = `You scored ${score} out of ${quizData.length}!`;
+            restartButton.style.display = 'block';
+        }
+
+        function restartQuiz() {
+            result.textContent = '';
+            restartButton.style.display = 'none';
+            loadQuiz();
+        }
+
+        submitButton.addEventListener('click', calculateScore);
+        restartButton.addEventListener('click', restartQuiz);
+
+        loadQuiz();
+    </script>
+</body>
+</html>
